@@ -1,0 +1,10 @@
+^E:\COLLEGE\SEM7\MEDIA\IDOL-ZOMBIE-SURVIVAL\BUILD\CMAKEFILES\3513C2EBA84E1DE9048D827F694C1C91\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -SE:/college/sem7/media/Idol-zombie-survival -BE:/college/sem7/media/Idol-zombie-survival/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file E:/college/sem7/media/Idol-zombie-survival/build/IdolZombieSurvival.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

@@ -1,0 +1,3 @@
+E:/college/sem7/media/Idol-zombie-survival/out/build/x86-debug/CMakeFiles/IdolZombieSurvival.dir
+E:/college/sem7/media/Idol-zombie-survival/out/build/x86-debug/CMakeFiles/edit_cache.dir
+E:/college/sem7/media/Idol-zombie-survival/out/build/x86-debug/CMakeFiles/rebuild_cache.dir
