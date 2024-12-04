@@ -20,3 +20,5 @@ out/
 
 # Ignore Visual Studio Code workspace settings (optional)
 .vscode/
+# Ignore Visual Studio temporary files
+.vs/

@@ -19,7 +19,7 @@ void Cam::followPlayer(bool isThirdPerson) {
     else {
         // First-person camera logic
         float rad = DEG2RAD(player.rotationAngle);
-        eye = player.position + Vector3f(0.0f, 1.8f, 0.0f); // Eye level
+        eye = player.position + Vector3f(0.0f, 0.0f, 0.0f); // Eye level
     }
     center = player.position;
 }
