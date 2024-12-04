@@ -1,3 +1,0 @@
-E:/college/sem7/media/Idol-zombie-survival/build/CMakeFiles/IdolZombieSurvival.dir
-E:/college/sem7/media/Idol-zombie-survival/build/CMakeFiles/ALL_BUILD.dir
-E:/college/sem7/media/Idol-zombie-survival/build/CMakeFiles/ZERO_CHECK.dir
