@@ -1,0 +1,22 @@
+# Ignore build and output directories
+build/
+out/
+
+# Ignore Visual Studio output
+*.exe
+*.dll
+*.obj
+*.pdb
+*.ilk
+*.idb
+*.ipch
+*.log
+
+# Ignore temporary files
+*.tmp
+*.log
+*.o
+*.a
+
+# Ignore Visual Studio Code workspace settings (optional)
+.vscode/
