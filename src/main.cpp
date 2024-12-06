@@ -4,14 +4,15 @@
 
 #include <glew.h>
 #include <glut.h>
+#include <glaux.h>
 
 #include "boss.h"
 #include "camera.h"
 #include "main.h"
 #include "model_loader.h"
 #include "player.h"
-#include "powerup.h"
 #include "projectile.h"
+#include "powerup.h"
 #include "zombie.h"
 
 
