@@ -15,13 +15,13 @@ void Cam::followPlayer(bool isThirdPerson) {
         // Third-person camera logic
         float rad = DEG2RAD(player.rotationAngle);
         eye = player.position + Vector3f(-cos(rad) * 5.0f, 2.0f, -sin(rad) * 5.0f); // Behind and above
+        center = player.position;
     }
     else {
-        // First-person camera logic
         float rad = DEG2RAD(player.rotationAngle);
-        eye = player.position + Vector3f(0.0f, 0.0f, 0.0f); // Eye level
+        eye = player.position + Vector3f(0.0f, 1.5f, 0.0f);
+        center = player.position + Vector3f(cos(rad) * 5.0f, 0.0f, sin(rad) * 5.0f);
     }
-    center = player.position;
 }
 
 void Cam::look() {

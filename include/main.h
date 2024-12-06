@@ -2,6 +2,7 @@
 #define MAIN_H
 
 #include "player.h"
+#include "boss.h"
 #include "camera.h"
 
 // Global variables

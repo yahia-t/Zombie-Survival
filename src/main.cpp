@@ -1,49 +1,72 @@
 #include <iostream>
+#include <vector>
+#include <chrono> // For Timing
+
 #include <glew.h>
 #include <glut.h>
+
+#include "boss.h"
 #include "camera.h"
-#include "player.h"
-#include "model_loader.h"
 #include "main.h"
-#include "zombie.h"
-#include <vector>
-#include "projectile.h"
+#include "model_loader.h"
+#include "player.h"
 #include "powerup.h"
-#include <vector>
-#include <chrono> // For timing
+#include "projectile.h"
+#include "zombie.h"
 
 
+//- - - -
 
-
-
-ProjectileType currentProjectileType = ProjectileType::BASIC;
 
 #define PI 3.14159265359
+#define DEG2RAD(degree) (degree * 0.0174532925)
 
-#define DEG2RAD(a) (a * 0.0174532925)
-
-std::vector<Projectile> projectiles; // Container for active projectiles
-
-std::vector<PowerUp> powerUps;
-std::vector<Zombie> zombies;
-float zombieSpawnInterval = 5.0f;  // Time between spawns
-float zombieSpawnTimer = 0.0f;
-
-
-Player player;
-Cam camera;
-
-
-float rotAng = 0.0f;
-bool keys[256] = { false };  // Key state tracking
-bool isMouseLocked = true;   // Flag to lock the mouse inside
-bool isThirdPerson = true;   // Third-person/first-person toggle
 int windowWidth = 1200;
 int windowHeight = 800;
-float moveSpeed = 0.3f;
-int score = 0;
+bool keys[256] = {false};  // Keyboard Presses Tracker
+bool isMouseLocked = true;
+
+std::vector<Projectile> projectiles; // Active Projectiles
+ProjectileType currentProjectileType = ProjectileType::BASIC;
+
+std::vector<PowerUp> powerUps;
+const float powerUpDuration = 10.0f; // Seconds
 float powerUpTimer = 0.0f;
-const float powerUpDuration = 10.0f; // Power-up lasts 10 seconds
+
+  std::vector<Zombie> zombies;
+float zombieSpawnInterval = 5.0f;  // Spawning Cooldown
+float zombieSpawnTimer = 0.0f;
+
+Player player;
+int score = 0;
+float moveSpeed = 0.3f;
+
+int level = 0; // Stadium, Circus
+bool fadeOut = false;
+bool fadeIn = false;
+float fadeAlpha = 1.0f;
+const float fadeDuration = 5.0f;
+float fadeTimer = 0.0f; // Fade Effect Duration
+
+Boss boss;
+
+Cam camera;
+bool isThirdPerson = true;   // Third-Person/First-Person Toggle
+float rotAng = 0.0f;
+
+
+//- - - -
+
+
+void renderScore() {
+    glColor3f(1.0f, 1.0f, 1.0f); // White text
+    glRasterPos2f(-0.95f, 0.9f); // Position on screen
+    std::string scoreText = "Score: " + std::to_string(score);
+    for (char c : scoreText) {
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, c);
+    }
+}
+
 
 
 void renderExplosions() {
@@ -81,22 +104,13 @@ void spawnPowerUps() {
 }
 
 
-void renderScore() {
-    glColor3f(1.0f, 1.0f, 1.0f); // White text
-    glRasterPos2f(-0.95f, 0.9f); // Position on screen
-    std::string scoreText = "Score: " + std::to_string(score);
-    for (char c : scoreText) {
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, c);
-    }
-}
-
-
-// Implementations of functions declared in main.h
 
 void spawnZombie() {
     Vector3f spawnPosition(rand() % 20 - 10, 0.0f, rand() % 20 - 10); // Random spawn position
     zombies.emplace_back(spawnPosition);
 }
+
+
 
 void fireProjectile() {
     Vector3f projectileDirection = Vector3f(
@@ -134,97 +148,6 @@ void fireProjectile() {
     }
 }
 
-
-
-void Anim() {
-    rotAng += 0.01f; // Increment rotation angle
-
-    // Update zombies
-    for (auto& zombie : zombies) {
-        zombie.moveTowards(player.position);
-    }
-
-    for (size_t i = 0; i < powerUps.size(); ) {
-        if (powerUps[i].isCollected(player.position)) {
-            currentProjectileType = powerUps[i].type; // Update the projectile type
-            powerUps.erase(powerUps.begin() + i);    // Remove the collected power-up
-        }
-        else {
-            ++i;
-        }
-    }
-
-    if (currentProjectileType != ProjectileType::BASIC) {
-        powerUpTimer += 0.01f;
-        if (powerUpTimer >= powerUpDuration) {
-            currentProjectileType = ProjectileType::BASIC;
-            powerUpTimer = 0.0f;
-        }
-    }
-
-
-
-    // Spawn new zombies
-    zombieSpawnTimer += 0.01f;
-    if (zombieSpawnTimer >= zombieSpawnInterval) {
-        spawnZombie();
-        zombieSpawnTimer = 0.0f;
-    }
-
-    
-
-
-    // Update projectiles
-    for (size_t i = 0; i < projectiles.size(); ) {
-        for (auto& projectile : projectiles) {
-            projectile.update(zombies); // Pass the zombies list for homing logic
-        }
-
-        // Remove out-of-bounds projectiles
-        if (projectiles[i].isOutOfBounds()) {
-            projectiles.erase(projectiles.begin() + i);
-        }
-        else {
-            ++i;
-        }
-    }
-
-    // Check for collisions between projectiles and zombies
-    for (size_t i = 0; i < projectiles.size(); ) {
-        bool projectileHit = false;
-
-        for (size_t j = 0; j < zombies.size(); ) {
-            if (projectiles[i].position.distance(zombies[j].position) < 1.0f) { // Collision threshold
-                zombies[j].takeDamage(projectiles[i].damage);
-
-                if (zombies[j].isDead()) {
-                    zombies.erase(zombies.begin() + j);
-                    // Increase score (assume you have a score variable)
-                    score++;
-                }
-                else {
-                    ++j;
-                }
-
-                projectileHit = true;
-                break;
-            }
-            else {
-                ++j;
-            }
-        }
-
-        if (projectileHit) {
-            projectiles.erase(projectiles.begin() + i);
-        }
-        else {
-            ++i;
-        }
-    }
-
-
-    glutPostRedisplay(); // Request display update
-}
 
 
 void Reshape(int width, int height) {
@@ -267,32 +190,182 @@ void KeyboardUp(unsigned char key, int x, int y) {
 
 
 
+void Anim() {
+    rotAng += 0.01f; // Increment Rotation
+
+    if (fadeOut || fadeIn) {
+        fadeTimer += 0.001f;
+        // std::cout << "fadeTimer: " << fadeTimer << std::endl;
+    }
+    
+    // Level Transition Logic
+    if (score >= 5 && level == 0) {
+        zombies.clear(); // Clear Existing Zombies
+        fadeOut = true;
+        level = 1;
+    }
+
+    if (fadeOut && (fadeTimer >= fadeDuration / 2)) {
+        fadeOut = false;
+        fadeIn = true;
+    }
+
+    if (fadeIn && (fadeTimer >= fadeDuration)) {
+        fadeIn = false;
+        fadeTimer = 0;
+    }
+
+    if (fadeIn || fadeOut) {
+
+        if (fadeOut) {
+            fadeAlpha = 2 * (1 - fadeTimer / fadeDuration) - 1; // Decrease
+        }
+        else {
+            fadeAlpha = 2 * (fadeTimer / fadeDuration) - 1; // Increase
+        }
+        //std::cout << "fadeAlpha: " << fadeAlpha << std::endl;
+        if (fadeAlpha <= 0.03f) {
+            GLfloat globalAmbient[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+            glLightModelfv(GL_LIGHT_MODEL_AMBIENT, globalAmbient);
+            GLfloat black[] = { fadeAlpha, fadeAlpha, fadeAlpha, 1.0f };  // Completely dark
+            glLightfv(GL_LIGHT0, GL_DIFFUSE, black);   // No diffuse light
+            glLightfv(GL_LIGHT0, GL_AMBIENT, black);   // No ambient light
+            glDisable(GL_LIGHT0);                      // Disable light source completely
+        }
+        else {
+            GLfloat globalAmbient[] = { 0, 0, 0, 1.0f };
+            glLightModelfv(GL_LIGHT_MODEL_AMBIENT, globalAmbient);
+            GLfloat lightIntensity[] = { fadeAlpha, fadeAlpha, fadeAlpha, 1.0f };  // Modify light intensity
+            glLightfv(GL_LIGHT0, GL_DIFFUSE, lightIntensity);  // Modify Diffuse Light
+            glLightfv(GL_LIGHT0, GL_AMBIENT, lightIntensity);  // Modify Ambient Light
+            glEnable(GL_LIGHT0);  // Ensure the light is enabled
+        }
+    }
+    
+
+    // Update Projectiles
+    for (size_t i = 0; i < projectiles.size(); ) {
+        for (auto& projectile : projectiles) {
+            projectile.update(zombies); // Pass The Zombies List For Homing Logic
+        }
+
+        // Remove Out-Of-Bounds Projectiles
+        if (projectiles[i].isOutOfBounds()) {
+            projectiles.erase(projectiles.begin() + i);
+        }
+        else {
+            ++i;
+        }
+    }
+
+    for (size_t i = 0; i < powerUps.size(); ) {
+        if (powerUps[i].isCollected(player.position)) {
+            currentProjectileType = powerUps[i].type; // Update Tthe Projectile Type
+            powerUps.erase(powerUps.begin() + i);    // Remove The Collected Power-up
+        }
+        else {
+            ++i;
+        }
+    }
+
+    if (currentProjectileType != ProjectileType::BASIC) {
+        powerUpTimer += 0.01f;
+        if (powerUpTimer >= powerUpDuration) {
+            currentProjectileType = ProjectileType::BASIC;
+            powerUpTimer = 0.0f;
+        }
+    }
+
+    if (level == 0) {
+        // Update Zombies
+        for (auto& zombie : zombies) {
+            zombie.moveTowards(player.position);
+        }
+
+        // Spawn New Zombies
+        zombieSpawnTimer += 0.01f;
+        if (zombieSpawnTimer >= zombieSpawnInterval) {
+            spawnZombie();
+            zombieSpawnTimer = 0.0f;
+        }
+    }
+
+    if (level == 1 && !(fadeOut || fadeIn)) {
+        boss.moveTowards(player.position);
+    }
+
+    // Check For Collisions Between Projectiles And Zombies
+    for (size_t i = 0; i < projectiles.size(); ) {
+        bool projectileHit = false;
+
+        for (size_t j = 0; j < zombies.size(); ) {
+            if (projectiles[i].position.distance(zombies[j].position) < 1.0f) { // Collision Threshold
+                zombies[j].takeDamage(projectiles[i].damage);
+
+                if (zombies[j].isDead()) {
+                    zombies.erase(zombies.begin() + j);
+                    // Increase Score
+                    score++;
+                }
+                else {
+                    ++j;
+                }
+
+                projectileHit = true;
+                break;
+            }
+            else {
+                ++j;
+            }
+        }
+
+        if (level == 1 && projectiles[i].position.distance(boss.position) < 1.0f) { // Collision Threshold
+            boss.takeDamage(projectiles[i].damage);
+
+            if (boss.isDead()) {
+                exit(500); // Winning Logic
+            }
+
+            projectileHit = true;
+            break;
+        }
+
+        if (projectileHit) {
+            projectiles.erase(projectiles.begin() + i);
+        }
+        else {
+            ++i;
+        }
+    }
+
+    glutPostRedisplay(); // Request Display Update
+}
+
+
 
 void Display() {
     // Clear the screen and depth buffer
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
-
-    if (keys['w'] || keys['W']) { // Move forward
+    if (keys['w'] || keys['W']) { // Move Forward
         player.moveForward(moveSpeed);
         std::cout << "Player Position: (" << player.position.x << ", "
             << player.position.y << ", " << player.position.z << ")\n";
 
     }
-    if (keys['s'] || keys['S']) { // Move backward
+    if (keys['s'] || keys['S']) { // Move Backward
         player.moveForward(-moveSpeed);
         std::cout << "Player Position: (" << player.position.x << ", "
             << player.position.y << ", " << player.position.z << ")\n";
 
     }
-    if (keys['a'] || keys['A']) { // Rotate left
+    if (keys['a'] || keys['A']) { // Rotate Left
         player.moveRight(moveSpeed);
         std::cout << "Player Position: (" << player.position.x << ", "
             << player.position.y << ", " << player.position.z << ")\n";
 
     }
-    if (keys['d'] || keys['D']) { // Rotate right
+    if (keys['d'] || keys['D']) { // Rotate Right
         player.moveRight(-moveSpeed);
         std::cout << "Player Position: (" << player.position.x << ", "
             << player.position.y << ", " << player.position.z << ")\n";
@@ -302,43 +375,44 @@ void Display() {
     renderScore();
     renderExplosions();
 
-
-
-
-    // Render power-ups
-    for (const auto& powerUp : powerUps) {
-        powerUp.render();
-    }
-
-    // Render projectiles
+    // Render Projectiles
     for (const auto& projectile : projectiles) {
         projectile.render();
     }
-
-
-    // Render zombies
+    
+    // Render Power-Ups
+    for (const auto& powerUp : powerUps) {
+        powerUp.render();
+    }
+    
+    // Render Zombies
     for (const auto& zombie : zombies) {
         zombie.render();
     }
 
-    // Update camera position and orientation
+    if (level == 1 && !fadeOut) {
+        // Render Boss
+        boss.render();
+    }
+
+    // Update Camera Position & Orientation
     camera.followPlayer(isThirdPerson);
     cam();
 
-    // Draw the ground plane
+    // Draw The Ground Plane
     glPushMatrix();
-    glColor3f(0.8f, 0.8f, 0.8f); // Light gray color for the plane
-    drawPlane(50.0f, 50);        // Plane size 50x50, divided into 50 segments
+    glColor3f(0.8f, 0.8f, 0.8f); // Light Gray
+    drawPlane(50.0f, 50);        // Plane Size 50x50, Divided Into 50 Segments
     glPopMatrix();
 
-    // Render the loaded 3D model
+    // Render The Loaded 3D Model
     glPushMatrix();
     glTranslatef(player.position.x, player.position.y, player.position.z);
-    glRotatef(player.rotationAngle, 0, -1, 0); // Rotate based on player's rotation
-    renderModel(); // Call the renderModel function from model_loader.cpp
+    glRotatef(player.rotationAngle, 0, -1, 0); // Rotate Based On Player's Rotation
+    renderModel(); // Call The RenderModel Function From model_loader.cpp
     glPopMatrix();
 
-    // Swap buffers (for double buffering)
+    // Swap Buffers (For Double Buffering)
     glutSwapBuffers();
 }
 
@@ -362,15 +436,15 @@ int main(int argc, char** argv) {
     std::cout << "GLEW initialized successfully! Using OpenGL version: "
         << glGetString(GL_VERSION) << std::endl;
 
-    // Setup display callbacks
+    // Display Callbacks
     glutDisplayFunc(Display);
-    glutIdleFunc(Anim); // Called when the system is idle
+    glutIdleFunc(Anim); // Called When System's Idel
     glutReshapeFunc(Reshape);
     glutPassiveMotionFunc(MouseMovement);
     glutKeyboardFunc(Keyboard);
     glutKeyboardUpFunc(KeyboardUp);
 
-    // Set up OpenGL
+    // OpenGL Setup
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
@@ -378,17 +452,15 @@ int main(int argc, char** argv) {
     glEnable(GL_COLOR_MATERIAL);
     glEnable(GL_TEXTURE_2D); // Enable 2D textures
 
-    // Load the 3D model
+    // 3D Model Loading
     loadModel("assets/penguin_skipper.glb");
-    spawnPowerUps(); // Call this function to add power-ups to the game world
+    spawnPowerUps();
 
-
-
-    // Center mouse
+    // Cursor Setup
     centerMouse();
     glutSetCursor(GLUT_CURSOR_NONE); // Hide the cursor
 
-    // Enter the GLUT event-processing loop
+    // GLUT Event-Processing Loop
     glutMainLoop();
 
     return 0;
