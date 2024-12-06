@@ -4,7 +4,6 @@
 
 #include <glew.h>
 #include <glut.h>
-#include <glaux.h>
 
 #include "boss.h"
 #include "camera.h"
@@ -228,22 +227,21 @@ void Anim() {
         if (fadeAlpha <= 0.03f) {
             GLfloat globalAmbient[] = { 0.0f, 0.0f, 0.0f, 1.0f };
             glLightModelfv(GL_LIGHT_MODEL_AMBIENT, globalAmbient);
-            GLfloat black[] = { fadeAlpha, fadeAlpha, fadeAlpha, 1.0f };  // Completely dark
-            glLightfv(GL_LIGHT0, GL_DIFFUSE, black);   // No diffuse light
-            glLightfv(GL_LIGHT0, GL_AMBIENT, black);   // No ambient light
-            glDisable(GL_LIGHT0);                      // Disable light source completely
+            GLfloat black[] = { fadeAlpha, fadeAlpha, fadeAlpha, 1.0f };    // Completely Dark
+            glLightfv(GL_LIGHT0, GL_DIFFUSE, black);
+            glLightfv(GL_LIGHT0, GL_AMBIENT, black);
+            glDisable(GL_LIGHT0);   // Disable Light Source Completely
         }
         else {
             GLfloat globalAmbient[] = { 0, 0, 0, 1.0f };
             glLightModelfv(GL_LIGHT_MODEL_AMBIENT, globalAmbient);
-            GLfloat lightIntensity[] = { fadeAlpha, fadeAlpha, fadeAlpha, 1.0f };  // Modify light intensity
-            glLightfv(GL_LIGHT0, GL_DIFFUSE, lightIntensity);  // Modify Diffuse Light
-            glLightfv(GL_LIGHT0, GL_AMBIENT, lightIntensity);  // Modify Ambient Light
-            glEnable(GL_LIGHT0);  // Ensure the light is enabled
+            GLfloat lightIntensity[] = { fadeAlpha, fadeAlpha, fadeAlpha, 1.0f };
+            glLightfv(GL_LIGHT0, GL_DIFFUSE, lightIntensity);
+            glLightfv(GL_LIGHT0, GL_AMBIENT, lightIntensity);
+            glEnable(GL_LIGHT0);
         }
     }
     
-
     // Update Projectiles
     for (size_t i = 0; i < projectiles.size(); ) {
         for (auto& projectile : projectiles) {

@@ -30,7 +30,7 @@ set(SOURCES
 )
 
 # Add executable
-add_executable(${PROJECT_NAME} ${SOURCES} "include/zombie.h" "src/zombie.cpp" "include/projectile.h" "src/projectile.cpp" "include/powerup.h" "src/powerup.cpp" "src/boss.cpp" "include/boss.h")
+add_executable(${PROJECT_NAME} ${SOURCES} "include/zombie.h" "src/zombie.cpp" "include/projectile.h" "src/projectile.cpp" "include/powerup.h" "src/powerup.cpp" "include/boss.h" "src/boss.cpp")
 
 # Link libraries
 target_link_libraries(${PROJECT_NAME} glew32 glut32 assimp-vc143-mt zlib opengl32)
