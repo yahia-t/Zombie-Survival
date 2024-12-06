@@ -11,6 +11,7 @@ include_directories(
     libs/glew/include
     libs/glut/include
     libs/assimp/include
+    libs/glaux/include
     libs/stb
 )
 
@@ -19,6 +20,7 @@ link_directories(
     libs/glew/lib
     libs/glut/lib
     libs/assimp/lib
+    libs/glaux/lib
 )
 
 # Source files
@@ -27,13 +29,14 @@ set(SOURCES
     src/main.cpp
     src/model_loader.cpp
     src/player.cpp
+
 )
 
 # Add executable
 add_executable(${PROJECT_NAME} ${SOURCES} "include/zombie.h" "src/zombie.cpp" "include/projectile.h" "src/projectile.cpp" "include/powerup.h" "src/powerup.cpp")
 
 # Link libraries
-target_link_libraries(${PROJECT_NAME} glew32 glut32 assimp-vc143-mt zlib opengl32)
+target_link_libraries(${PROJECT_NAME} glew32 glaux glut32 assimp-vc143-mt zlib opengl32)
 
 # Platform-specific configurations
 if(WIN32)
@@ -76,6 +79,9 @@ add_custom_command(
     $<TARGET_FILE_DIR:${PROJECT_NAME}>
     COMMAND ${CMAKE_COMMAND} -E copy
     ${CMAKE_SOURCE_DIR}/libs/assimp/bin/zlib1.dll
+    $<TARGET_FILE_DIR:${PROJECT_NAME}>
+    COMMAND ${CMAKE_COMMAND} -E copy
+    ${CMAKE_SOURCE_DIR}/libs/glaux/bin/glaux.dll
     $<TARGET_FILE_DIR:${PROJECT_NAME}>
 )
 

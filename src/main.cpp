@@ -11,6 +11,7 @@
 #include "powerup.h"
 #include <vector>
 #include <chrono> // For timing
+#include <glaux.h>
 
 
 
